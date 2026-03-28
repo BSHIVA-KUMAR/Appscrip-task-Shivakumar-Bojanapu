@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useCart } from './CartContext';
 import { useWishlist } from './WishlistContext';
 
@@ -15,6 +16,10 @@ export default function Header({ defaultSearch = '' }) {
   const [bagView, setBagView] = useState('cart');
   const [payMethod, setPayMethod] = useState('card');
   const [orderId, setOrderId] = useState('');
+  const [thankYouOpen, setThankYouOpen] = useState(false);
+  const [orderReceipt, setOrderReceipt] = useState(null);
+  const [portalReady, setPortalReady] = useState(false);
+  const thankYouContinueRef = useRef(null);
   const searchPanelId = useId().replace(/:/g, '');
   const searchInputId = `${searchPanelId}-q`;
   const bagRef = useRef(null);
@@ -31,6 +36,7 @@ export default function Header({ defaultSearch = '' }) {
     subtotal,
     removeLine,
     setQty,
+    clearCart,
   } = useCart();
 
   const {
@@ -42,15 +48,50 @@ export default function Header({ defaultSearch = '' }) {
     removeWish,
   } = useWishlist();
 
+  const finishThankYou = useCallback(() => {
+    clearCart();
+    setThankYouOpen(false);
+    setOrderReceipt(null);
+    setCartOpen(false);
+    setBagView('cart');
+    setOrderId('');
+  }, [clearCart, setCartOpen]);
+
+  useEffect(() => {
+    setPortalReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!thankYouOpen) return;
+    const t = window.setTimeout(() => {
+      thankYouContinueRef.current?.focus();
+    }, 0);
+    return () => window.clearTimeout(t);
+  }, [thankYouOpen]);
+
+  useEffect(() => {
+    if (!thankYouOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [thankYouOpen]);
+
   useEffect(() => {
     if (!cartOpen && !wishOpen) return;
     function onKey(e) {
       if (e.key === 'Escape') {
+        if (thankYouOpen) {
+          finishThankYou();
+          return;
+        }
         setCartOpen(false);
         setWishOpen(false);
       }
     }
     function onPointerDown(e) {
+      if (thankYouOpen) return;
       const t = e.target;
       if (bagRef.current?.contains(t) || wishRef.current?.contains(t)) {
         return;
@@ -64,21 +105,23 @@ export default function Header({ defaultSearch = '' }) {
       document.removeEventListener('keydown', onKey);
       document.removeEventListener('pointerdown', onPointerDown);
     };
-  }, [cartOpen, wishOpen, setCartOpen, setWishOpen]);
+  }, [cartOpen, wishOpen, thankYouOpen, finishThankYou, setCartOpen, setWishOpen]);
 
   useEffect(() => {
     if (!cartOpen) {
       setBagView('cart');
       setOrderId('');
+      setThankYouOpen(false);
+      setOrderReceipt(null);
     }
   }, [cartOpen]);
 
   useEffect(() => {
-    if (lines.length === 0) {
+    if (lines.length === 0 && !thankYouOpen) {
       setBagView('cart');
       setOrderId('');
     }
-  }, [lines.length]);
+  }, [lines.length, thankYouOpen]);
 
   const taxEstimate = subtotal * 0.08;
   const orderTotal = subtotal + taxEstimate;
@@ -92,13 +135,90 @@ export default function Header({ defaultSearch = '' }) {
     setBagView('checkout');
   }
 
-  function continueShopping() {
-    setCartOpen(false);
-    setBagView('cart');
-    setOrderId('');
+  function completePayment() {
+    const tax = subtotal * 0.08;
+    const total = subtotal + tax;
+    setOrderReceipt({
+      orderId,
+      dateLabel: new Date().toLocaleDateString(),
+      lines: lines.map((l) => ({
+        id: l.id,
+        title: l.title,
+        quantity: l.quantity,
+        price: l.price,
+      })),
+      subtotal,
+      taxEstimate: tax,
+      orderTotal: total,
+    });
+    setThankYouOpen(true);
   }
 
+  const thankYouModal =
+    portalReady && thankYouOpen && orderReceipt
+      ? createPortal(
+          <div
+            className="plp-thankyou-backdrop"
+            role="presentation"
+            onClick={finishThankYou}
+          >
+            <div
+              className="plp-thankyou-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="thankyou-heading"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 id="thankyou-heading" className="plp-thankyou__title">
+                Thank you for shopping with us
+              </h3>
+              <div className="plp-payslip plp-thankyou__slip" aria-label="Payment slip">
+                <p className="plp-payslip__brand">mettā muse</p>
+                <p className="plp-payslip__meta">
+                  Order #{orderReceipt.orderId} · {orderReceipt.dateLabel}
+                </p>
+                <ul className="plp-payslip__lines">
+                  {orderReceipt.lines.map((line) => (
+                    <li key={line.id} className="plp-payslip__line">
+                      <span className="plp-payslip__line-title">
+                        {line.quantity} × {line.title}
+                      </span>
+                      <span className="plp-payslip__line-price">
+                        ${(line.price * line.quantity).toFixed(2)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="plp-payslip__rule" />
+                <div className="plp-payslip__row">
+                  <span>Subtotal</span>
+                  <span>${orderReceipt.subtotal.toFixed(2)}</span>
+                </div>
+                <div className="plp-payslip__row plp-payslip__row--muted">
+                  <span>Estimated tax (8%)</span>
+                  <span>${orderReceipt.taxEstimate.toFixed(2)}</span>
+                </div>
+                <div className="plp-payslip__row plp-payslip__total">
+                  <span>Total paid</span>
+                  <span>${orderReceipt.orderTotal.toFixed(2)}</span>
+                </div>
+              </div>
+              <button
+                ref={thankYouContinueRef}
+                type="button"
+                className="plp-thankyou__continue"
+                onClick={finishThankYou}
+              >
+                Continue shopping
+              </button>
+            </div>
+          </div>,
+          document.body,
+        )
+      : null;
+
   return (
+    <>
     <header className="plp-header">
       <div className="plp-header__shell">
         <div className="plp-header__main">
@@ -311,11 +431,18 @@ export default function Header({ defaultSearch = '' }) {
                       <button
                         type="button"
                         className="plp-checkout__secondary"
-                        onClick={continueShopping}
+                        onClick={() => {
+                          setBagView('cart');
+                          setOrderId('');
+                        }}
                       >
-                        Continue shopping
+                        Back to bag
                       </button>
-                      <button type="button" className="plp-checkout__pay">
+                      <button
+                        type="button"
+                        className="plp-checkout__pay"
+                        onClick={completePayment}
+                      >
                         Pay ${orderTotal.toFixed(2)}
                       </button>
                     </div>
@@ -447,5 +574,7 @@ export default function Header({ defaultSearch = '' }) {
         </nav>
       </div>
     </header>
+    {thankYouModal}
+    </>
   );
 }

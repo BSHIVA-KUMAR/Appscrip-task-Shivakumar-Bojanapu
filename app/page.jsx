@@ -43,7 +43,7 @@ export default async function HomePage(props) {
           </ol>
         </nav>
         <div className="plp-intro">
-          <h1 className="plp-page-title">All products</h1>
+          <h1 className="plp-page-title">DISCOVER OUR PRODUCTS</h1>
           <p className="plp-lead">
             Discover styles and essentials. Use filters to narrow by category and price.
           </p>

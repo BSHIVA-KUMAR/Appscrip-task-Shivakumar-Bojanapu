@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import Filters from './Filters';
 import ProductGrid from './ProductGrid';
+import SortDropdown from './SortDropdown';
+import { sortProducts } from '@/lib/sortProducts';
 
 function uniqueCategories(products) {
   const set = new Set(products.map((p) => p.category));
@@ -21,7 +23,8 @@ export default function ProductListing({ products, initialQuery = '' }) {
   const [query, setQuery] = useState(initialQuery);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [priceLimit, setPriceLimit] = useState(ceiling);
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(true);
+  const [sortBy, setSortBy] = useState('recommended');
 
   useEffect(() => {
     setQuery(initialQuery);
@@ -38,6 +41,11 @@ export default function ProductListing({ products, initialQuery = '' }) {
       return true;
     });
   }, [products, query, selectedCategories, priceLimit]);
+
+  const sortedFiltered = useMemo(
+    () => sortProducts(filtered, sortBy),
+    [filtered, sortBy],
+  );
 
   function toggleCategory(cat) {
     setSelectedCategories((prev) =>
@@ -59,24 +67,32 @@ export default function ProductListing({ products, initialQuery = '' }) {
   }
 
   return (
-    <section id="products" className="plp-layout" aria-labelledby="catalog-heading">
+    <section
+      id="products"
+      className="plp-layout"
+      data-filters={filtersOpen ? 'open' : 'closed'}
+      aria-labelledby="catalog-heading"
+    >
+      <h2 id="catalog-heading" className="plp-sr-only">
+        Product catalog
+      </h2>
       <div className="plp-toolbar">
-        <button
-          type="button"
-          className="plp-filter-toggle"
-          aria-expanded={filtersOpen}
-          aria-controls="filters"
-          onClick={() => setFiltersOpen((v) => !v)}
-        >
-          {filtersOpen ? 'Hide filters' : 'Show filters'}
-        </button>
-        <div className="plp-toolbar__meta">
-          <h2 id="catalog-heading" className="plp-section-title">
-            Products
-          </h2>
-          <p className="plp-count">
-            {filtered.length} product{filtered.length === 1 ? '' : 's'}
+        <div className="plp-toolbar__left">
+          <p className="plp-count plp-count--items">
+            {filtered.length} item{filtered.length === 1 ? '' : 's'}
           </p>
+          <button
+            type="button"
+            className="plp-filter-toggle"
+            aria-expanded={filtersOpen}
+            aria-controls="filters"
+            onClick={() => setFiltersOpen((v) => !v)}
+          >
+            {filtersOpen ? '< Hide filter' : '> Show filter'}
+          </button>
+        </div>
+        <div className="plp-toolbar__sort">
+          <SortDropdown value={sortBy} onChange={setSortBy} />
         </div>
       </div>
       <Filters
@@ -90,7 +106,7 @@ export default function ProductListing({ products, initialQuery = '' }) {
         filtersOpen={filtersOpen}
       />
       <div className="plp-grid-wrap">
-        <ProductGrid products={filtered} />
+        <ProductGrid products={sortedFiltered} />
       </div>
     </section>
   );

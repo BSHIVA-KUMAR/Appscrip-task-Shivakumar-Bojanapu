@@ -40,6 +40,10 @@ export function CartProvider({ children }) {
     setLines((prev) => prev.filter((l) => l.id !== id));
   }, []);
 
+  const clearCart = useCallback(() => {
+    setLines([]);
+  }, []);
+
   const setQty = useCallback(
     (id, q) => {
       if (q < 1) {
@@ -68,6 +72,7 @@ export function CartProvider({ children }) {
       lines,
       addItem,
       removeLine,
+      clearCart,
       setQty,
       open,
       setOpen,
@@ -79,6 +84,7 @@ export function CartProvider({ children }) {
       lines,
       addItem,
       removeLine,
+      clearCart,
       setQty,
       open,
       totalCount,
