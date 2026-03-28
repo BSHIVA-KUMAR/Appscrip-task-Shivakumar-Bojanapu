@@ -1,16 +1,32 @@
-# React + Vite
+# Appscrip task — Shivakumar Bojanapu
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Product Listing Page (PLP) built with **Next.js (App Router)** and **React**. The home route is **server-rendered on each request (SSR)**: products are fetched on the server from the [Fake Store API](https://fakestoreapi.com/) with `cache: 'no-store'`, and the page is marked `dynamic = 'force-dynamic'`.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Semantic layout (`header`, `main`, `footer`, `nav`, `section`, `article`, `aside`, `fieldset`)
+- SEO: metadata (title, description, Open Graph), visible **H1** / **H2** hierarchy, **JSON-LD** `ItemList` + `Product` schema
+- Accessible product images with descriptive **alt** text; `data-seo-name` carries a slug derived from the title for traceability
+- Responsive CSS (desktop grid, tablet 2 columns, mobile 1 column) — no CSS framework
+- Client-side search, category filters, and max-price range with minimal interactive surface
 
-## React Compiler
+## Scripts
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm install
+npm run dev    # http://localhost:3000
+npm run build
+npm start      # production server after build
+npm run lint
+```
 
-## Expanding the ESLint configuration
+## Deploy on Netlify
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+1. Push this repo to a public GitHub repository named `Appscrip-task-Shivakumar-Bojanapu` (or your candidate name variant).
+2. In [Netlify](https://www.netlify.com/), create a site from the repo.
+3. Build command: `npm run build`. The repo includes `netlify.toml` with `@netlify/plugin-nextjs` for the Next.js runtime.
+
+## Stack
+
+- Next.js 15, React 19
+- Dependencies: `next`, `react`, `react-dom` only (no Axios — native `fetch`)
