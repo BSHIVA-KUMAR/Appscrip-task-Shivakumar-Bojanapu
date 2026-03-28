@@ -18,6 +18,8 @@
   --shadow-header: 0 1px 0 rgba(0, 0, 0, 0.06);
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08);
   --max-width: 1280px;
+  /* Header home icon tile (transparent = no fill behind Logo.svg) */
+  --header-mark-bg: transparent;
   --font-body: var(--font-roboto), 'Helvetica Neue', Arial, sans-serif;
   --font-logo: var(--font-inter), system-ui, sans-serif;
 }
@@ -106,14 +108,13 @@ img {
   opacity: 0.92;
 }
 
-/* Pink tile + symbol (design reference) */
 .plp-header__mark-bg {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 44px;
   height: 44px;
-  background: #e9648b;
+  background: var(--header-mark-bg);
   border-radius: 4px;
 }
 
@@ -122,7 +123,6 @@ img {
   height: 26px;
   max-width: none;
   display: block;
-  filter: brightness(0) invert(1);
 }
 
 .plp-header__logo-title {
