@@ -1,32 +1,75 @@
-# Appscrip task — Shivakumar Bojanapu
+# Product listing page — Appscrip task
 
-Product Listing Page (PLP) built with **Next.js (App Router)** and **React**. The home route is **server-rendered on each request (SSR)**: products are fetched on the server from the [Fake Store API](https://fakestoreapi.com/) with `cache: 'no-store'`, and the page is marked `dynamic = 'force-dynamic'`.
+A shop-style product listing built with Next.js. Product data comes from the public Fake Store API.
 
-## Features
+---
 
-- Semantic layout (`header`, `main`, `footer`, `nav`, `section`, `article`, `aside`, `fieldset`)
-- SEO: metadata (title, description, Open Graph), visible **H1** / **H2** hierarchy, **JSON-LD** `ItemList` + `Product` schema
-- Accessible product images with descriptive **alt** text; `data-seo-name` carries a slug derived from the title for traceability
-- Responsive CSS (desktop grid, tablet 2 columns, mobile 1 column) — no CSS framework
-- Client-side search, category filters, and max-price range with minimal interactive surface
+## Clone the repo
 
-## Scripts
+```bash
+git clone https://github.com/Shivakumar-Bojanapu/Appscrip-task-Shivakumar-Bojanapu.git
+cd Appscrip-task-Shivakumar-Bojanapu
+```
+
+*(If your GitHub URL is different, use your own clone link instead.)*
+
+---
+
+## Install
+
+You need **Node.js** installed (version 18 or newer is fine).
 
 ```bash
 npm install
-npm run dev    # http://localhost:3000
-npm run build
-npm start      # production server after build
-npm run lint
 ```
 
-## Deploy on Netlify
+That downloads everything listed in `package.json` (mainly Next.js and React).
 
-1. Push this repo to a public GitHub repository named `Appscrip-task-Shivakumar-Bojanapu` (or your candidate name variant).
-2. In [Netlify](https://www.netlify.com/), create a site from the repo.
-3. Build command: `npm run build`. The repo includes `netlify.toml` with `@netlify/plugin-nextjs` for the Next.js runtime.
+---
 
-## Stack
+## Tech used
 
-- Next.js 15, React 19
-- Dependencies: `next`, `react`, `react-dom` only (no Axios — native `fetch`)
+- **Next.js** (App Router) — pages and server-side fetch  
+- **React** — UI  
+- **Plain CSS** — styling in `app/globals.css`  
+- **Fake Store API** — product list over the internet  
+
+---
+
+## Run the app
+
+**While developing** (saves files and refreshes the browser):
+
+```bash
+npm run dev
+```
+
+Open **http://localhost:3000** in your browser.
+
+**Production-style run** (after a full build):
+
+```bash
+npm run build
+npm start
+```
+
+Again, the site is at **http://localhost:3000** (unless your terminal says another port).
+
+---
+
+## Links
+
+| | |
+|--|--|
+| **GitHub** | https://github.com/Shivakumar-Bojanapu/Appscrip-task-Shivakumar-Bojanapu |
+| **Netlify (live site)** | https://appscrip-task-shivakumar-bojanapu.netlify.app |
+
+If your repository or Netlify site uses another name, update the table above so the links match your real URLs.
+
+---
+
+## API / Netlify 403
+
+Products are loaded on the **server** (not in the browser), so **CORS is not the issue**. A **403** from Fake Store on Netlify is often fixed by sending a normal **browser `User-Agent`** (already done in `lib/fakestore.js`). If the primary API still blocks your host, the app **falls back** to [DummyJSON](https://dummyjson.com/docs/products) and maps items to the same shape.
+
+Optional: set **`PRODUCTS_API_URL`** in Netlify → Site configuration → Environment variables to your own JSON products URL (must return the same shape as Fake Store’s `/products` array).
